@@ -100,8 +100,8 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 			<div class="service-grid">
 				<img src="images/weather.png" class="img-responsive" alt="" />
 				<h3>Nearby Wether</h3>
-				<p>Temperature: <span id="browserTemperature"> Not Supported </span> °F</p>
-				<p>Wind Speed: <span id="browserWindSpeed"> Not Supported </span> mph </p>
+				<p>Temperature: <span id="browserTemperature">  </span> °F</p>
+				<p>Wind Speed: <span id="browserWindSpeed">  </span> mph </p>
 			</div>
 
 			<div class="service-grid">

@@ -26,7 +26,7 @@ function getBusStops(latitude, longitude) {
 	xmlhttp.open("GET","http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=" + latitude + "&lon=" + longitude, true); 
 	console.log("http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=" + latitude + "&lon=" + longitude);
 	xmlhttp.onreadystatechange=function() {
-		console.log(xmlhttp);
+		console.log(xmlhttp.readyState + " " + xmlhttp.status);
 		if (xmlhttp.readyState==4 && xmlhttp.status==200) { // if the response is ready
 			var data = JSON.parse(xmlhttp.responseText);
 
