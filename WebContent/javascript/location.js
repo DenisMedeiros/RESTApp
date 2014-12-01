@@ -10,42 +10,21 @@ window.onload = function(){
 	getIpAddress();
 };
 
-//get nearby busstops for using the IP and browser information
-
-function getBusStops(latitude, longitude) {
-
-	// to avoid the Cross-Origin Request Blocked
-	
-	$.ajax({
-		type: 'GET',
-		url: "http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=" + latitude + "&lon=" + longitude,
-		dataType: 'jsonp',
-		success: function(data) {
-			
-			console.log("http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=" + latitude + "&lon=" + longitude);
-			console.log(data);
-			
-			// TODO add the data about the bus' stops
-			
-		}
-	});
-	
-	
-}
 
 //get the location using the browser information.
 
 function getLocationFromBrowser(position) {
 
-	var latitude = position.coords.latitude;
-	var longitude = position.coords.longitude;
+	var latitude = parseFloat(position.coords.latitude).toFixed(7);
+	var longitude = parseFloat(position.coords.longitude).toFixed(7);
 
 	var browserLatitude = document.getElementById("browserLatitude");
 	var browserLongitude = document.getElementById("browserLongitude");
-	browserLatitude.textContent = latitude.toFixed(4);
-	browserLongitude.textContent = longitude.toFixed(4);
 
-	getBusStops(latitude, longitude); // get bus stop information
+	browserLatitude.textContent = latitude;
+	browserLongitude.textContent = longitude;
+
+	getBusStops(latitude, longitude, "browser"); // get bus stop information
 
 	getWeatherInformation(latitude, longitude, "browser"); // get weather information.
 }
@@ -99,16 +78,18 @@ function getLocationByIp(ip){
 	xmlhttp.onreadystatechange=function() {
 
 		if (xmlhttp.readyState==4 && xmlhttp.status==200) { // if the response is ready
-			var data = JSON.parse(xmlhttp.responseText);
 
+			var data = JSON.parse(xmlhttp.responseText);
+			var latitude = parseFloat(data.latitude).toFixed(7);
+			var longitude = parseFloat(data.longitude).toFixed(7);
 
 			var ipLatitude = document.getElementById("ipLatitude");
 			var ipLongitude = document.getElementById("ipLongitude");
 
-			ipLatitude.textContent = data.latitude;
-			ipLongitude.textContent = data.longitude;
+			ipLatitude.textContent = latitude;
+			ipLongitude.textContent = longitude;
 
-			getBusStops(data.latitude, data.longitude);  // get bus stop information
+			getBusStops(latitude, longitude, "ip");  // get bus stop information
 
 			getWeatherInformation(data.latitude, data.longitude, "ip");
 
@@ -162,5 +143,101 @@ function getWeatherInformation(latitude, longitude, method) {
 	};
 
 	xmlhttp.send();
+
+}
+
+
+
+//get nearby busstops for using the IP and browser information
+
+function getBusStops(latitude, longitude, method) {
+
+	// to avoid the Cross-Origin Request Blocked
+
+	$.ajax({
+		type: 'GET',
+		url: "http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=" + latitude + "&lon=" + longitude + "&radius=300",
+		//url: "http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=43.043947&lon=-89.3562395&radius=300",
+		dataType: 'jsonp',
+		success: function(data) {		
+
+			if(data.stop.length != 0) { //  bus stop found
+
+				if(method == "ip") {
+
+					var divBus = document.getElementById("ipBusStops");
+
+					for(var i = 0; i < data.stop.length; i++) {
+
+						var stopId = document.createElement('P');
+						var stopIntersection = document.createElement('P');
+						var stopLatitude = document.createElement('P');
+						var stopLongitude = document.createElement('P');
+
+
+
+						stopId.textContent = "ID: " + data.stop[i].stopID;
+						stopIntersection.textContent = "Intersection: " +  data.stop[i].intersection;
+						stopLatitude.textContent = "Latidtude: " + data.stop[i].latitude;
+						stopLongitude.textContent = "Longitude: " +data.stop[i].longitude;
+
+
+						divBus.appendChild(stopId);
+						divBus.appendChild(stopIntersection);
+						divBus.appendChild(stopLatitude);
+						divBus.appendChild(stopLongitude);
+						divBus.appendChild(document.createElement('BR'));
+
+					}
+
+				}else if (method == "browser") {
+
+					var divBus = document.getElementById("browserBusStops");
+
+					for(var i = 0; i < data.stop.length; i++) {
+
+						var stopId = document.createElement('P');
+						var stopIntersection = document.createElement('P');
+						var stopLatitude = document.createElement('P');
+						var stopLongitude = document.createElement('P');
+
+
+						stopId.textContent = "ID: " + data.stop[i].stopID;
+						stopIntersection.textContent = "Intersection: " +  data.stop[i].intersection;
+						stopLatitude.textContent = "Latidtude: " + data.stop[i].latitude;
+						stopLongitude.textContent = "Longitude: " +data.stop[i].longitude;
+
+
+						divBus.appendChild(stopId);
+						divBus.appendChild(stopIntersection);
+						divBus.appendChild(stopLatitude);
+						divBus.appendChild(stopLongitude);
+						divBus.appendChild(document.createElement('BR'));
+
+					}
+				}
+			}else {
+
+				var errorMessage = document.createElement('P');
+				errorMessage.textContent = "No bus stop found in the radius of 300 ft.";
+
+				if(method == "ip"){
+
+					var divBus = document.getElementById("ipBusStops");
+					divBus.appendChild(errorMessage);
+
+
+				} else if (method == "browser") {
+					var divBus = document.getElementById("browserBusStops");
+					divBus.appendChild(errorMessage);
+
+				}
+
+
+			}
+		}
+
+	});
+
 
 }
