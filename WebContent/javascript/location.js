@@ -25,8 +25,11 @@ function getLocationFromBrowser(position) {
 	browserLongitude.textContent = longitude;
 
 	getBusStops(latitude, longitude, "browser"); // get bus stop information
+	
+	haversine();
 
 	getWeatherInformation(latitude, longitude, "browser"); // get weather information.
+	
 }
 
 //get the IP address of the client.
@@ -90,8 +93,12 @@ function getLocationByIp(ip){
 			ipLongitude.textContent = longitude;
 
 			getBusStops(latitude, longitude, "ip");  // get bus stop information
+			
+			haversine();
 
 			getWeatherInformation(data.latitude, data.longitude, "ip");
+			
+			
 
 		}
 	};
@@ -166,6 +173,9 @@ function getBusStops(latitude, longitude, method) {
 				if(method == "ip") {
 
 					var divBus = document.getElementById("ipBusStops");
+					var waiting = document.getElementById("ipWaitingBusStops");
+					divBus.removeChild(waiting);
+					
 
 					for(var i = 0; i < data.stop.length; i++) {
 
@@ -173,14 +183,12 @@ function getBusStops(latitude, longitude, method) {
 						var stopIntersection = document.createElement('P');
 						var stopLatitude = document.createElement('P');
 						var stopLongitude = document.createElement('P');
-
-
+						
 
 						stopId.textContent = "ID: " + data.stop[i].stopID;
 						stopIntersection.textContent = "Intersection: " +  data.stop[i].intersection;
 						stopLatitude.textContent = "Latidtude: " + data.stop[i].latitude;
 						stopLongitude.textContent = "Longitude: " +data.stop[i].longitude;
-
 
 						divBus.appendChild(stopId);
 						divBus.appendChild(stopIntersection);
@@ -193,7 +201,9 @@ function getBusStops(latitude, longitude, method) {
 				}else if (method == "browser") {
 
 					var divBus = document.getElementById("browserBusStops");
-
+					var waiting = document.getElementById("browserWaitingBusStops");
+					divBus.removeChild(waiting);
+					
 					for(var i = 0; i < data.stop.length; i++) {
 
 						var stopId = document.createElement('P');
@@ -206,8 +216,7 @@ function getBusStops(latitude, longitude, method) {
 						stopIntersection.textContent = "Intersection: " +  data.stop[i].intersection;
 						stopLatitude.textContent = "Latidtude: " + data.stop[i].latitude;
 						stopLongitude.textContent = "Longitude: " +data.stop[i].longitude;
-
-
+						
 						divBus.appendChild(stopId);
 						divBus.appendChild(stopIntersection);
 						divBus.appendChild(stopLatitude);
@@ -239,5 +248,56 @@ function getBusStops(latitude, longitude, method) {
 
 	});
 
+}
 
+// snipet
+
+/** Converts numeric degrees to radians */
+if (typeof(Number.prototype.toRad) === "undefined") {
+  Number.prototype.toRad = function() {
+    return this * Math.PI / 180;
+  };
+}
+
+// calculate the distance between the two locations found by the application
+
+function haversine(){
+	
+	
+	var latitude1 = parseFloat(document.getElementById("ipLatitude").textContent);
+	var longitude1 = parseFloat(document.getElementById("ipLongitude").textContent);
+	var latitude2 = parseFloat(document.getElementById("browserLatitude").textContent);
+	var longitude2 = parseFloat(document.getElementById("browserLongitude").textContent);
+	
+	console.log(latitude1);
+	console.log(longitude1);
+	console.log(latitude2);
+	console.log(longitude2);
+	
+	
+	if(isNaN(latitude1) || isNaN(longitude1) || isNaN(latitude2) || isNaN(longitude2)){ // do nothing
+		
+		console.log("Same value if invalid.");
+	
+	} else {
+	
+		var R = 6371; // km
+		
+		var fi1 = latitude1.toRad();
+		var fi2 = latitude2.toRad();
+		var dfi = (latitude2-latitude1).toRad();
+		var dlamb = (longitude2-longitude1).toRad();
+	
+		var a = Math.sin(dfi/2) * Math.sin(dfi/2) + Math.cos(fi1) * Math.cos(fi2) * Math.sin(dlamb/2) * Math.sin(dlamb/2);
+		
+		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+	
+		var d = R * c; // d = distance between the two points
+		
+		var resultDistance = document.getElementById("resultDistance");
+		
+		console.log(d);
+		
+		resultDistance.textContent = "" + (d/1.6).toFixed(3) + " miles";
+	}
 }
