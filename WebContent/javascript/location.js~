@@ -167,7 +167,9 @@ function getWeatherInformation(latitude, longitude, method) {
 	xmlhttp.send();
 	var end = new Date().getTime();
 	var time = end - start;
-	console.log('Execution time to Fetch Weather: (' + method + ') ' + start + "  " + end);
+	alert('Execution time to Fetch Weather: (' + method + ') ' + start + "  " + end);
+	console.log('Execution time to Fetch Weather: (' + method + ')' + time);
+
 
 }
 
