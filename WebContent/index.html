@@ -55,22 +55,23 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 				<div class="service-grid">
 					<img src="images/place.png" class="img-responsive" alt="" />
 					<h3>Location</h3>
-					<p>Latitude: <span id="ipLatitude"> ? </span></p>
-					<p>Longitude:<span id="ipLongitude"> ? </span></p>			
+					<p>Latitude: <span id="ipLatitude"> Processing... </span></p>
+					<p>Longitude:<span id="ipLongitude"> Processing... </span></p>			
 
 				</div>
 
 				<div class="service-grid">
 					<img src="images/weather.png" class="img-responsive" alt="" />
 					<h3>Nearby Wether</h3>
-					<p>Temperature: <span id="ipTemperature"> ? </span> °F </p>
-					<p>Wind Speed: <span id="ipWindSpeed"> ? </span> mph </p>
+					<p>Temperature: <span id="ipTemperature"> Processing...  </span> °F </p>
+					<p>Wind Speed: <span id="ipWindSpeed"> Processing...  </span> mph </p>
 				</div>
 
 				<div class="service-grid">
 					<img src="images/bus.png" class="img-responsive" alt="" />
 					<h3>Closest Bus Stops (300 ft)</h3>
 					<div id="ipBusStops"> 
+					<p id="ipWaitingBusStops"> Processing... </p>
 					</div>
 				</div>
 				<div class="clear"></div>
@@ -108,15 +109,37 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 				<img src="images/bus.png" class="img-responsive" alt="" />
 				<h3>Closest Bus Stops (300 ft)</h3>
 					<div id="browserBusStops"> 
+						<p id="browserWaitingBusStops"> Processing... </p>
 					</div>
 			</div>
 			<div class="clear"></div>
 		</div>
 	</div>
+	
+	<br />
+	
+	
+	<div class="service-section">
+		<div class="wrap">
+			<h3>Results</h3>
+			<hr />
+		</div>
+	</div>
 
+	<div class="service-grids">
+		<div class="wrap">
+			<div class="service-grid">
+				<img src="images/results.png" class="img-responsive" alt="" />
+				<h3> Distance between the two locations </h3>
+				<p> <span id="resultDistance"> Processing... </span> </p>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</div>
 
 	<!--/End-bservices-->
 	
+
 
 	<!----- /start-footer---->
 	<div class="footer">
