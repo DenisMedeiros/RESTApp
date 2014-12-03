@@ -1,9 +1,9 @@
 //when the page finishes the loading, run the following functions.
+var browserStart;
 window.onload = function(){
 
 	if (navigator.geolocation) {
-		var start = new Date().getTime();
-console.log("get location browser start " + start);
+		browserStart = performance.now();
 		navigator.geolocation.getCurrentPosition(getLocationFromBrowser);
 	} else {
 		console.log("Geolocation is not supported by this browser.");
@@ -16,8 +16,11 @@ console.log("get location browser start " + start);
 //get the location using the browser information.
 
 function getLocationFromBrowser(position) {
-	var end = new Date().getTime();
-	console.log('Execution time to Fetch Location (Browser): end '  + end );
+
+	var end = performance.now();
+	var time = end - browserStart;
+	var locationBrowser = document.getElementById("locationbrowser");
+	locationBrowser.textContent = time.toFixed(5) + " ms";
 
 	var latitude = parseFloat(position.coords.latitude).toFixed(7);
 	var longitude = parseFloat(position.coords.longitude).toFixed(7);
@@ -41,10 +44,7 @@ function getLocationFromBrowser(position) {
 function getIpAddress(){
 
 	var xmlhttp = null;
-	var end = new Date().getTime();
-	var time = end - start;
-	console.log('Execution time to Fetch IP: ' + start + ' ' + end);
-	console.log('Execution time to Fetch IP: ' + time);
+
 	if (window.XMLHttpRequest) {
 		xmlhttp=new XMLHttpRequest(); // code for all modern browsers
 	}
@@ -67,10 +67,6 @@ function getIpAddress(){
 	};
 
 	xmlhttp.send();
-	var end = new Date().getTime();
-	var time = end - start;
-	console.log('Execution time to Fetch IP: ' + start + ' ' + end);
-	console.log('Execution time to Fetch IP: ' + time);
 
 
 }
@@ -88,14 +84,18 @@ function getLocationByIp(ip){
 		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP"); // code for IE6, IE5
 	}
 
-	var start = new Date().getMilliseconds();
-console.log(start);
+	var start = performance.now();
 
 	xmlhttp.open("GET","http://www.telize.com/geoip/" + ip, true); // get a set of information about this ip
 
 	xmlhttp.onreadystatechange=function() {
 
 		if (xmlhttp.readyState==4 && xmlhttp.status==200) { // if the response is ready
+			
+			var end = performance.now();
+			var time = end - start;
+			var locationIP = document.getElementById("locationip");
+			locationIP.textContent = time.toFixed(5) + " ms";
 
 			var data = JSON.parse(xmlhttp.responseText);
 			var latitude = parseFloat(data.latitude).toFixed(7);
@@ -119,10 +119,7 @@ console.log(start);
 	};
 
 	xmlhttp.send();
-	var end = new Date().getMilliseconds();
-	var time = end - start;
-	console.log('Execution time to location (IP): ' + start + " " + end);
-	console.log('Execution time to location (IP): ' + time);
+
 
 
 }
@@ -140,13 +137,18 @@ function getWeatherInformation(latitude, longitude, method) {
 		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP"); // code for IE6, IE5
 	}
 
-	var start = new Date().getTime();
+
+	var start = performance.now();
 
 	xmlhttp.open("GET","http://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude, true);
 
 	xmlhttp.onreadystatechange=function() {
 		if (xmlhttp.readyState==4 && xmlhttp.status==200) { // if the response is ready.
-
+			
+			var end = performance.now();
+			var time = end - start;
+			var weatherTime = document.getElementById("weather" + method);
+			weatherTime.textContent = time.toFixed(5) + " ms";
 			var data = JSON.parse(xmlhttp.responseText);
 
 			var	temperature = null;
@@ -172,9 +174,6 @@ function getWeatherInformation(latitude, longitude, method) {
 	};
 
 	xmlhttp.send();
-	var end = new Date().getTime();
-	var time = end - start;
-	console.log('Execution time to Fetch Weather: (' + method + ') ' + start + "  " + end);
 
 }
 
@@ -185,7 +184,7 @@ function getWeatherInformation(latitude, longitude, method) {
 function getBusStops(latitude, longitude, method) {
 
 	// to avoid the Cross-Origin Request Blocked
-	var start = new Date().getTime();
+	var start = performance.now();
 	$.ajax({
 		type: 'GET',
 		url: "http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=" + latitude + "&lon=" + longitude + "&radius=300",
@@ -193,10 +192,10 @@ function getBusStops(latitude, longitude, method) {
 		dataType: 'jsonp',
 		success: function(data) {		
 
-			var end = new Date().getTime();
+			var end = performance.now();
 			var time = end - start;
-			console.log('Execution time to Fetch bus stops: ( ' + method + ') ' + start + " " + end);
-			console.log('Execution time to Fetch bus stops: ( ' + method + ')' + time);
+			var busTime = document.getElementById("bus" + method);
+			busTime.textContent = time.toFixed(5) + " ms";
 
 			if(data.stop.length != 0) { //  bus stop found
 
@@ -288,6 +287,25 @@ if (typeof(Number.prototype.toRad) === "undefined") {
     return this * Math.PI / 180;
   };
 }
+
+
+// monitor page load time
+
+window.addEventListener("load", function() {
+  setTimeout(function() {
+
+    var timing = window.performance.timing;
+    var fetchTime = timing.responseEnd - timing.fetchStart;
+    var loadTime =  timing.domComplete - timing.domLoading;
+    var loadFetchTime = timing.domComplete - timing.fetchStart;
+console.log(fetchTime + " " + loadTime + " " +  loadFetchTime);
+
+    document.getElementById("fetchTime").textContent = fetchTime + " ms";
+    document.getElementById("loadTime").textContent = loadTime + " ms";
+    document.getElementById("loadFetchTime").textContent = loadFetchTime + " ms";
+
+  }, 0);
+}, false);
 
 // calculate the distance between the two locations found by the application
 
