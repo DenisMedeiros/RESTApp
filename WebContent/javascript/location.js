@@ -1,5 +1,6 @@
-//when the page finishes the loading, run the following functions.
 var browserStart;
+
+//when the page finishes the loading, run the following functions.
 window.onload = function(){
 
 	if (navigator.geolocation) {
@@ -31,15 +32,15 @@ function getLocationFromBrowser(position) {
 	browserLatitude.textContent = latitude;
 	browserLongitude.textContent = longitude;
 
-	getBusStops(latitude, longitude, "browser"); // get bus stop information
+	getBusStops(latitude, longitude, "browser"); // get bus stop information.
 	
-	haversine();
+	calculateDistanceBetweenMethods();	// try to get the distance between the location found by the ip and by the browser.
 
 	getWeatherInformation(latitude, longitude, "browser"); // get weather information.
 	
 }
 
-//get the IP address of the client.
+//get the IP address of the client using the Telize
 
 function getIpAddress(){
 
@@ -71,7 +72,7 @@ function getIpAddress(){
 
 }
 
-//get the location of this ip.
+//get the location based on the IP obtained from Telize.
 
 function getLocationByIp(ip){
 
@@ -107,11 +108,11 @@ function getLocationByIp(ip){
 			ipLatitude.textContent = latitude;
 			ipLongitude.textContent = longitude;
 
-			getBusStops(latitude, longitude, "ip");  // get bus stop information
+			getBusStops(latitude, longitude, "ip"); 
 			
-			haversine();
+			calculateDistanceBetweenMethods();		// try to get the distance between the location found by the ip and by the browser
 
-			getWeatherInformation(data.latitude, data.longitude, "ip");
+			getWeatherInformation(data.latitude, data.longitude, "ip");	
 			
 			
 
@@ -124,7 +125,7 @@ function getLocationByIp(ip){
 
 }
 
-//get the weather information base on location.
+//get the weather information base on location based on method (ip or browser)
 
 function getWeatherInformation(latitude, longitude, method) {
 
@@ -167,8 +168,8 @@ function getWeatherInformation(latitude, longitude, method) {
 
 			}
 
-			temperature.textContent = ((parseFloat(data.main.temp) - 273.15) * 1.8000 + 32).toFixed(2);
-			windSpeed.textContent = (parseFloat(data.wind.speed) * 2.24).toFixed(2);
+			temperature.textContent = "" + ((parseFloat(data.main.temp) - 273.15) * 1.8000 + 32).toFixed(2) + "°F";
+			windSpeed.textContent = "" + (parseFloat(data.wind.speed) * 2.24).toFixed(2) + "mph";
 
 		}
 	};
@@ -179,12 +180,14 @@ function getWeatherInformation(latitude, longitude, method) {
 
 
 
-//get nearby busstops for using the IP and browser information
+//get nearby busstops for some location based on one method (ip or browser)
 
 function getBusStops(latitude, longitude, method) {
 
 	// to avoid the Cross-Origin Request Blocked
+	
 	var start = performance.now();
+	
 	$.ajax({
 		type: 'GET',
 		url: "http://api.smsmybus.com/v1/getnearbystops?key=uwcompsci&lat=" + latitude + "&lon=" + longitude + "&radius=300",
@@ -204,7 +207,6 @@ function getBusStops(latitude, longitude, method) {
 					var divBus = document.getElementById("ipBusStops");
 					var waiting = document.getElementById("ipWaitingBusStops");
 					divBus.removeChild(waiting);
-					
 
 					for(var i = 0; i < data.stop.length; i++) {
 
@@ -212,17 +214,20 @@ function getBusStops(latitude, longitude, method) {
 						var stopIntersection = document.createElement('P');
 						var stopLatitude = document.createElement('P');
 						var stopLongitude = document.createElement('P');
-						
+						var distanceFromYou = document.createElement('P');
 
 						stopId.textContent = "ID: " + data.stop[i].stopID;
 						stopIntersection.textContent = "Intersection: " +  data.stop[i].intersection;
 						stopLatitude.textContent = "Latidtude: " + data.stop[i].latitude;
-						stopLongitude.textContent = "Longitude: " +data.stop[i].longitude;
+						stopLongitude.textContent = "Longitude: " + data.stop[i].longitude;
+						
+						distanceFromYou.textContent = "Distance from you: " + (haversine(latitude, longitude, data.stop[i].latitude, data.stop[i].longitude) * 3280.84).toFixed(2) + " ft";
 
 						divBus.appendChild(stopId);
 						divBus.appendChild(stopIntersection);
 						divBus.appendChild(stopLatitude);
 						divBus.appendChild(stopLongitude);
+						divBus.appendChild(distanceFromYou);
 						divBus.appendChild(document.createElement('BR'));
 
 					}
@@ -239,17 +244,20 @@ function getBusStops(latitude, longitude, method) {
 						var stopIntersection = document.createElement('P');
 						var stopLatitude = document.createElement('P');
 						var stopLongitude = document.createElement('P');
-
+						var distanceFromYou = document.createElement('P');
 
 						stopId.textContent = "ID: " + data.stop[i].stopID;
 						stopIntersection.textContent = "Intersection: " +  data.stop[i].intersection;
 						stopLatitude.textContent = "Latidtude: " + data.stop[i].latitude;
-						stopLongitude.textContent = "Longitude: " +data.stop[i].longitude;
+						stopLongitude.textContent = "Longitude: " + data.stop[i].longitude;
 						
+						distanceFromYou.textContent = "Distance from you: " + (haversine(latitude, longitude, data.stop[i].latitude, data.stop[i].longitude) * 3280.84).toFixed(2) + " ft";
+
 						divBus.appendChild(stopId);
 						divBus.appendChild(stopIntersection);
 						divBus.appendChild(stopLatitude);
 						divBus.appendChild(stopLongitude);
+						divBus.appendChild(distanceFromYou);
 						divBus.appendChild(document.createElement('BR'));
 
 					}
@@ -257,16 +265,20 @@ function getBusStops(latitude, longitude, method) {
 			}else {
 
 				var errorMessage = document.createElement('P');
-				errorMessage.textContent = "No bus stop found in the radius of 300 ft.";
+				errorMessage.textContent = "No bus stop found in the radius of 300 ft";
 
 				if(method == "ip"){
 
 					var divBus = document.getElementById("ipBusStops");
+					var waiting = document.getElementById("ipWaitingBusStops");
+					divBus.removeChild(waiting);
 					divBus.appendChild(errorMessage);
 
 
 				} else if (method == "browser") {
 					var divBus = document.getElementById("browserBusStops");
+					var waiting = document.getElementById("browserWaitingBusStops");
+					divBus.removeChild(waiting);
 					divBus.appendChild(errorMessage);
 
 				}
@@ -279,26 +291,17 @@ function getBusStops(latitude, longitude, method) {
 
 }
 
-// snipet
-
-/** Converts numeric degrees to radians */
-if (typeof(Number.prototype.toRad) === "undefined") {
-  Number.prototype.toRad = function() {
-    return this * Math.PI / 180;
-  };
-}
-
-
 // monitor page load time
 
 window.addEventListener("load", function() {
+	
   setTimeout(function() {
 
     var timing = window.performance.timing;
     var fetchTime = timing.responseEnd - timing.fetchStart;
     var loadTime =  timing.domComplete - timing.domLoading;
     var loadFetchTime = timing.domComplete - timing.fetchStart;
-console.log(fetchTime + " " + loadTime + " " +  loadFetchTime);
+	console.log(fetchTime + " " + loadTime + " " +  loadFetchTime);
 
     document.getElementById("fetchTime").textContent = fetchTime + " ms";
     document.getElementById("loadTime").textContent = loadTime + " ms";
@@ -307,27 +310,25 @@ console.log(fetchTime + " " + loadTime + " " +  loadFetchTime);
   }, 0);
 }, false);
 
-// calculate the distance between the two locations found by the application
 
-function haversine(){
+
+// snipet to convert degrees to rad.
+
+if (typeof(Number.prototype.toRad) === "undefined") {
+  Number.prototype.toRad = function() {
+    return this * Math.PI / 180;
+  };
+}
+
+
+// calculate the distance between the two locations found by the application.
+
+function haversine(lat1, long1, lat2, long2){ 
 	
-	
-	var latitude1 = parseFloat(document.getElementById("ipLatitude").textContent);
-	var longitude1 = parseFloat(document.getElementById("ipLongitude").textContent);
-	var latitude2 = parseFloat(document.getElementById("browserLatitude").textContent);
-	var longitude2 = parseFloat(document.getElementById("browserLongitude").textContent);
-	
-	console.log(latitude1);
-	console.log(longitude1);
-	console.log(latitude2);
-	console.log(longitude2);
-	
-	
-	if(isNaN(latitude1) || isNaN(longitude1) || isNaN(latitude2) || isNaN(longitude2)){ // do nothing
-		
-		console.log("Same value if invalid.");
-	
-	} else {
+		var latitude1 = parseFloat(lat1);
+		var longitude1 = parseFloat(long1);
+		var latitude2 = parseFloat(lat2);
+		var longitude2 = parseFloat(long2);
 	
 		var R = 6371; // km
 		
@@ -342,10 +343,25 @@ function haversine(){
 	
 		var d = R * c; // d = distance between the two points
 		
+		return d; // d is in km
+}
+
+
+// haversine to calculate distance between ip and browser locations.
+
+function calculateDistanceBetweenMethods(){
+		
+	var latitude1 = document.getElementById("ipLatitude").textContent;
+	var longitude1 = document.getElementById("ipLongitude").textContent;
+	var latitude2 = document.getElementById("browserLatitude").textContent;
+	var longitude2 = document.getElementById("browserLongitude").textContent;
+	
+	if(isNaN(latitude1) || isNaN(longitude1) || isNaN(latitude2) || isNaN(longitude2)){ // do nothing
+		console.log("Same value if invalid.");
+	} else {	
 		var resultDistance = document.getElementById("resultDistance");
-		
-		console.log(d);
-		
-		resultDistance.textContent = "" + (d/1.6).toFixed(3) + " miles";
+		var distance = haversine(latitude1, longitude1, latitude2, longitude2);
+		resultDistance.textContent = "" + (distance/1.6).toFixed(3) + " miles";
 	}
+	
 }
